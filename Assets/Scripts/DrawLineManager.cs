@@ -82,8 +82,8 @@ public class DrawLineManager : MonoBehaviour
         currentLinePointNumber = 0;
     }
 
-    // this works by raycasting from a finger to the plane in front of the camera
-    // and returns the hit position in worldspace
+    // raycast from the finger on the screen to the plane in front of the camera
+    // and return the hit position in worldspace 
     private Vector3 CalculateFingerPosition()
     {
         Ray rayOrigin = Camera.main.ScreenPointToRay(Input.mousePosition);

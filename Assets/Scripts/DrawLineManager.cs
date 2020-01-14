@@ -1,39 +1,38 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARKit;
-//using UnityEngine.Experimental.XR;
 using UnityEngine.XR.ARSubsystems;
 using System;
 
 public class DrawLineManager : MonoBehaviour
 {
+    // line settings (can be adjusted within inspector)
     [SerializeField]
     private Color startColor;
     [SerializeField]
     private Color endColor;
-    // note: 1f = 1 meter in real life
     [SerializeField]
-    private float startWidth; 
+    private float startWidth; // 1f = 1 meter in real life
     [SerializeField]
     private float endWidth;
 
-
+    // current line
     private LineRenderer currentLine;
     private int currentLinePointNumber;
-
-    private bool painting;
+    
+    // whether a line is currently being drawn
+    private bool isPainting;
 
     void Start()
     {
         currentLinePointNumber = 0;
-        painting = false;
+        isPainting = false;
     }
 
     void Update()
     {
-
         if (Input.touchCount > 0)
         {
             // just pressed down finger
@@ -44,30 +43,23 @@ public class DrawLineManager : MonoBehaviour
                 SetLineColor();
 
                 // start painting
-                painting = true;
+                isPainting = true;
             }
 
             // just lifted finger up
             else if(Input.GetTouch(0).phase == TouchPhase.Ended)
             {
                 // stop painting
-                painting = false;
+                isPainting = false;
             }
 
             // painting
-            else if (painting)
+            else if (isPainting)
             {
-                UpdateLine(CalculateFingerPosition());
+                // update line segment given the position of the phone and finger
+                UpdateLine(CalculateFingerPosition()); 
             }
-
         }
-    }
-
-    private void StartNewLine()
-    {
-        GameObject emptyGameObject = new GameObject();
-        currentLine = emptyGameObject.AddComponent<LineRenderer>();
-        currentLinePointNumber = 0;
     }
 
     private void SetLineWidth()
@@ -82,6 +74,13 @@ public class DrawLineManager : MonoBehaviour
         currentLine.startColor = startColor;
         currentLine.endColor = endColor;
     }
+    
+    private void StartNewLine()
+    {
+        GameObject emptyGameObject = new GameObject();
+        currentLine = emptyGameObject.AddComponent<LineRenderer>();
+        currentLinePointNumber = 0;
+    }
 
     // this works by raycasting from a finger to the plane in front of the camera
     // and returns the hit position in worldspace
@@ -90,12 +89,13 @@ public class DrawLineManager : MonoBehaviour
         Ray rayOrigin = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hitInfo;
         
-        // Layer 8 is reserved for the plane in front of the camera
+        // layer 8 is reserved for the plane in front of the camera
         if (Physics.Raycast(rayOrigin, out hitInfo, 1 << 8))
         {
             return hitInfo.point;
         }
-
+        
+        // raycast missed plane 
         else
         {
             Debug.Log("Broken");
